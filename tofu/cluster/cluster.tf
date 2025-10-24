@@ -49,15 +49,62 @@ resource "openstack_compute_instance_v2" "control_plane" {
     port = openstack_networking_port_v2.control_plane.id
   }
 
-  user_data = templatefile("${path.module}/user_data.tpl", {
-    "role"             = "control-plane"
-    "token"            = random_password.k3s_token.result
-    "control_plane_ip" = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
-    "node_ip"          = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
+  user_data = templatefile("${path.module}/user_data.tftpl", {
+    "role"                  = "control-plane"
+    "control_plane_ip"      = local.control_plane_ip
+    "control_plane_address" = local.control_plane_address
+    "node_ip"               = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
+    "token"                 = random_password.k3s_token.result
+    "ssh_user"              = var.ssh_username
   })
+}
+
+resource "terraform_data" "fetch_kubeconfig" {
+  triggers_replace = {
+    instance_id = openstack_compute_instance_v2.control_plane.id
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "while [ ! -f /home/${var.ssh_username}/kubeconfig.yaml ]; do echo 'Waiting for k3s installation to finish...' && sleep 10; done"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = var.ssh_username
+      private_key = (var.ssh_private_key_file != "" ? file(var.ssh_private_key_file) :
+        tls_private_key.ssh_key_generated[0].private_key_openssh)
+      host = local.control_plane_ip
+    }
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+          -i ${var.ssh_private_key_file != "" ? var.ssh_private_key_file : local_sensitive_file.ssh_private_key_generated.filename} \
+          ${var.ssh_username}@${local.control_plane_ip}:/home/${var.ssh_username}/kubeconfig.yaml \
+          ${local.kubeconfig_path}
+    EOT
+  }
 }
 
 resource "random_password" "k3s_token" {
   length  = 64
   special = false
+}
+
+locals {
+  kubeconfig_path = "${path.root}/secrets/${local.cluster_name}/kubeconfig.yaml"
+}
+
+data "local_file" "kubeconfig" {
+  filename = local.kubeconfig_path
+
+  depends_on = [terraform_data.fetch_kubeconfig]
+}
+
+output "kubeconfig" {
+  description = "Kubeconfig for external cluster access."
+  value       = data.local_file.kubeconfig.content
+  sensitive   = true
 }

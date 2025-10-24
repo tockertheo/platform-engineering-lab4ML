@@ -11,9 +11,19 @@ resource "openstack_networking_port_v2" "control_plane" {
   security_group_ids = [openstack_networking_secgroup_v2.control_plane.id]
 }
 
-output "control_plane_external_ip" {
-  description = "Control plane address on the external network (from the created port)."
-  value       = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
+locals {
+  control_plane_ip = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
+  control_plane_address = "https://${local.control_plane_ip}:6443"
+}
+
+output "control_plane_ip" {
+  description = "Control plane IP address."
+  value       = local.control_plane_ip
+}
+
+output "control_plane_address" {
+  description = "Control plane address (URI)."
+  value       = local.control_plane_address
 }
 
 resource "openstack_networking_secgroup_v2" "control_plane" {

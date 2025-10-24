@@ -1,6 +1,7 @@
-output "control_plane_external_ip" {
-  description = "Control plane node IPv4 address on the external network (from the cluster module)."
-  value       = module.cluster_control.control_plane_external_ip
+output "control_kubeconfig" {
+  description = "Kubeconfig for the control cluster."
+  value       = module.cluster_control.kubeconfig
+  sensitive   = true
 }
 
 output "ssh_private_key_generated" {
