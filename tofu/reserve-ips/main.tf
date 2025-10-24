@@ -21,9 +21,9 @@ data "openstack_networking_network_v2" "this" {
 resource "openstack_networking_port_v2" "this" {
   count = var.ip_count
 
-  name = format("reserved-%03d", count.index)
+  name       = format("reserved-%03d", count.index)
   network_id = data.openstack_networking_network_v2.this.id
 
-  tags = ["reserved-by=timebertt"]
+  tags        = ["reserved-by=timebertt"]
   description = "Reserved by Tim Ebert for the Data Engineering Course"
 }

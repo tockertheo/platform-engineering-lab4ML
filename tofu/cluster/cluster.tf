@@ -9,7 +9,7 @@ locals {
     "module"                = "cluster"
     "kubernetes.io/cluster" = local.cluster_name
   }
-  common_tags           = [for k, v in local.common_metadata : "${k}=${v}"]
+  common_tags = [for k, v in local.common_metadata : "${k}=${v}"]
   # Some OpenStack resource tag values must not contain ',' or '/'.
   # Sanitize metadata keys by replacing '/' with '_'.
   common_tags_sanitized = [for k, v in local.common_metadata : "${replace(k, "/", "_")}=${v}"]
@@ -36,7 +36,7 @@ resource "openstack_compute_instance_v2" "control_plane" {
   name      = "${local.resource_name}-control-plane"
   tags      = local.common_tags_sanitized
   flavor_id = data.openstack_compute_flavor_v2.control_plane.id
-  key_pair  = var.keypair_name != "" ? var.keypair_name : openstack_compute_keypair_v2.keypair_generated[0].name
+  key_pair  = openstack_compute_keypair_v2.keypair.name
 
   block_device {
     source_type      = "volume"
@@ -72,16 +72,15 @@ resource "terraform_data" "fetch_kubeconfig" {
     connection {
       type        = "ssh"
       user        = var.ssh_username
-      private_key = (var.ssh_private_key_file != "" ? file(var.ssh_private_key_file) :
-        tls_private_key.ssh_key_generated[0].private_key_openssh)
-      host = local.control_plane_ip
+      private_key = tls_private_key.ssh_key.private_key_openssh
+      host        = local.control_plane_ip
     }
   }
 
   provisioner "local-exec" {
     command = <<-EOT
       scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-          -i ${var.ssh_private_key_file != "" ? var.ssh_private_key_file : local_sensitive_file.ssh_private_key_generated.filename} \
+          -i ${local_sensitive_file.ssh_private_key.filename} \
           ${var.ssh_username}@${local.control_plane_ip}:/home/${var.ssh_username}/kubeconfig.yaml \
           ${local.kubeconfig_path}
     EOT

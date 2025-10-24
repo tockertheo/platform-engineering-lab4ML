@@ -4,19 +4,6 @@ variable "name" {
   default     = ""
 }
 
-variable "keypair_name" {
-  description = "Existing keypair name to use for instances (optional). If empty, the module generates a keypair and creates a new keypair with the public key."
-  type        = string
-  default     = ""
-}
-
-variable "ssh_private_key_file" {
-  description = "Path to the SSH private key belonging to the keypair_name (optional)."
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "image_name" {
   description = "Name or regex for the image to use for the cluster nodes."
   type        = string

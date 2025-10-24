@@ -7,12 +7,12 @@ resource "openstack_networking_port_v2" "control_plane" {
   description = "Port for control plane node of cluster ${local.cluster_name}"
   tags        = local.common_tags
 
-  network_id = data.openstack_networking_network_v2.ext_network.id
+  network_id         = data.openstack_networking_network_v2.ext_network.id
   security_group_ids = [openstack_networking_secgroup_v2.control_plane.id]
 }
 
 locals {
-  control_plane_ip = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
+  control_plane_ip      = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
   control_plane_address = "https://${local.control_plane_ip}:6443"
 }
 
