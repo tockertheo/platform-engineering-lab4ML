@@ -25,3 +25,15 @@ variable "control_plane_node" {
     flavor = "gp1.medium"
   }
 }
+
+variable "worker_nodes" {
+  description = "Worker nodes to assign to the cluster."
+  type = object({
+    count  = number
+    flavor = string
+  })
+  default = {
+    count  = 3
+    flavor = "gp1.medium"
+  }
+}

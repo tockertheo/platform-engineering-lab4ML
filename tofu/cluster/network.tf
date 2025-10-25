@@ -2,9 +2,11 @@ data "openstack_networking_network_v2" "ext_network" {
   name = "DHBW"
 }
 
-resource "openstack_networking_port_v2" "control_plane" {
-  name        = "${local.resource_name}-control-plane"
-  description = "Port for control plane node of cluster ${local.cluster_name}"
+resource "openstack_networking_port_v2" "node" {
+  for_each = local.nodes
+
+  name        = each.value.name
+  description = "Port for node ${each.value.name}"
   tags        = local.common_tags
 
   network_id         = data.openstack_networking_network_v2.ext_network.id
@@ -12,7 +14,7 @@ resource "openstack_networking_port_v2" "control_plane" {
 }
 
 locals {
-  control_plane_ip      = openstack_networking_port_v2.control_plane.all_fixed_ips[0]
+  control_plane_ip      = openstack_networking_port_v2.node["control-plane"].all_fixed_ips[0]
   control_plane_address = "https://${local.control_plane_ip}:6443"
 }
 
