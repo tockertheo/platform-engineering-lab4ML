@@ -12,13 +12,24 @@ data "openstack_images_image_v2" "image" {
   most_recent = true
 }
 
-resource "openstack_blockstorage_volume_v3" "node" {
+resource "openstack_blockstorage_volume_v3" "node_boot" {
   for_each = local.nodes
 
-  name        = each.value.name
+  name        = "${each.value.name}-boot"
   description = "Boot volume for node ${each.value.name}"
   metadata    = local.common_metadata
   image_id    = var.image_id != "" ? var.image_id : data.openstack_images_image_v2.image[0].id
+  size        = 10
+}
+
+# Separate data volume for k3s data storage (etcd data, certificates, container images, PersistentVolumes, etc.)
+# This allows easier switching of node OS images without losing cluster data.
+resource "openstack_blockstorage_volume_v3" "node_data" {
+  for_each = local.nodes
+
+  name        = "${each.value.name}-data"
+  description = "Persistent data disk for node ${each.value.name}"
+  metadata    = local.common_metadata
   size        = each.value.volume_size
 }
 
@@ -33,9 +44,16 @@ resource "openstack_compute_instance_v2" "node" {
 
   block_device {
     source_type      = "volume"
-    uuid             = openstack_blockstorage_volume_v3.node[each.key].id
+    uuid             = openstack_blockstorage_volume_v3.node_boot[each.key].id
     destination_type = "volume"
     boot_index       = 0
+  }
+
+  block_device {
+    source_type      = "volume"
+    uuid             = openstack_blockstorage_volume_v3.node_data[each.key].id
+    destination_type = "volume"
+    boot_index       = 1
   }
 
   network {
@@ -49,5 +67,6 @@ resource "openstack_compute_instance_v2" "node" {
     "node_ip"               = openstack_networking_port_v2.node[each.key].all_fixed_ips[0]
     "token"                 = random_password.k3s_token.result
     "ssh_user"              = var.ssh_username
+    "k3s_data_device"       = "/dev/disk/by-id/virtio-${substr(openstack_blockstorage_volume_v3.node_data[each.key].id, 0, 20)}"
   })
 }

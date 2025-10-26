@@ -4,9 +4,6 @@ locale: en_US.UTF-8
 timezone: Europe/Berlin
 
 write_files:
-- path: /var/lib/rancher/k3s/server/token
-  permissions: "0600"
-  content: "${token}"
 - path: /etc/rancher/k3s/config.yaml
   permissions: "0600"
   content: |
@@ -26,12 +23,52 @@ write_files:
     %{ else }
     server: "${control_plane_address}"
     %{ endif }
-    token-file: /var/lib/rancher/k3s/server/token
     node-external-ip: ${node_ip}
     node-label:
     - pool=${role}
     # isolate control plane nodes from LoadBalancer traffic
     - svccontroller.k3s.cattle.io/enablelb=%{ if role == "control-plane" }false%{ else }true%{ endif }
+- path: /opt/mount-k3s-data.sh
+  permissions: "0700"
+  content: |
+    #!/bin/bash
+    set -o errexit
+    set -o nounset
+    set -o pipefail
+
+    echo "Mounting k3s data volume"
+
+    DEV="${k3s_data_device}"
+    DATA_DIR="/var/lib/rancher/k3s"
+    NODE_DIR="/etc/rancher/node"
+    PERSIST_NODE_DIR="$DATA_DIR/node"
+
+    if ! mount | grep -q " on $DATA_DIR "; then
+      if ! blkid $DEV; then
+        echo "Formatting k3s data device ($DEV) as ext4"
+        mkfs.ext4 -F $DEV
+      fi
+      mkdir -p $DATA_DIR
+      echo "$DEV $DATA_DIR ext4 defaults 0 2" >> /etc/fstab
+      mount $DATA_DIR
+      chown -R root:root $DATA_DIR
+    fi
+
+    # Move /etc/rancher/node to persistent disk if not already there and symlink it back to /etc/rancher/node.
+    # /etc/rancher/node stores the node password which should be persisted even when switching the boot disk (upgrading
+    # the OS image).
+    if [ ! -L "$NODE_DIR" ]; then
+      if [ -d "$NODE_DIR" ] && [ ! -d "$PERSIST_NODE_DIR" ]; then
+        echo "Moving $NODE_DIR to $PERSIST_NODE_DIR"
+        mv "$NODE_DIR" "$PERSIST_NODE_DIR"
+      else
+        mkdir -p "$PERSIST_NODE_DIR"
+      fi
+
+      echo "Creating symlink to $PERSIST_NODE_DIR at $NODE_DIR"
+      rm -rf "$NODE_DIR"
+      ln -s "$PERSIST_NODE_DIR" "$NODE_DIR"
+    fi
 - path: /opt/install-k3s.sh
   permissions: "0700"
   content: |
@@ -43,6 +80,7 @@ write_files:
     echo "Installing k3s (${role})"
 
     export INSTALL_K3S_CHANNEL="v1.34"
+    export K3S_TOKEN="${token}"
     %{ if role == "control-plane" }
     export INSTALL_K3S_EXEC="server"
     %{ else }
@@ -58,4 +96,5 @@ write_files:
     %{ endif }
 
 runcmd:
-- /opt/install-k3s.sh
+  - [ bash, /opt/mount-k3s-data.sh ]
+  - [ bash, /opt/install-k3s.sh ]
