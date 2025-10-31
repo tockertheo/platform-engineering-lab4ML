@@ -9,3 +9,9 @@ variable "image_id" {
   type        = string
   default     = ""
 }
+
+variable "cluster_count" {
+  description = "Number of student clusters to create."
+  type        = number
+  default     = 1
+}
