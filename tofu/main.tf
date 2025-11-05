@@ -19,8 +19,8 @@ locals {
 
   clusters = merge(
     {
-      "control" = {
-        name          = "control"
+      "timebertt" = {
+        name          = "timebertt"
         output_prefix = "00-"
       }
     },
