@@ -2,6 +2,17 @@
 
 This repository contains resources and code for the [Platform Engineering course](https://github.com/timebertt/talk-platform-engineering) at DHBW Mannheim.
 
+## Lab Exercises
+
+The course includes practical lab exercises covering various topics related to Kubernetes and cloud native tooling.
+The exercises are designed to provide hands-on experience with the concepts and tools discussed in the lectures.
+
+The tasks are introduced in the respective slides section (e.g., [Lab: Kustomize](https://talks.timebertt.dev/platform-engineering/#/lab-kustomize)).
+Students are expected to complete the exercises using their individual Kubernetes clusters provided for the course.
+The [labs directory](labs) contains solutions and explanations for each exercise:
+
+- [Kustomize](labs/kustomize.md)
+
 ## Prerequisites
 
 As a student, you should have the following knowledge and skills for this course:

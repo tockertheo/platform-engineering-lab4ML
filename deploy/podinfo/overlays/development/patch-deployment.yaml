@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo
+spec:
+  template:
+    spec:
+      containers:
+      - name: podinfod
+        # Append the log level argument.
+        # The base deployment specifies the default command and flags in the `command` field.
+        # kubelet will append the `args` list to the `command` list when starting the container.
+        args:
+        - --level=debug
