@@ -197,3 +197,22 @@ Kustomization/flux-system/flux-system
 │   └── HorizontalPodAutoscaler/podinfo-prod/podinfo
 ├── ...
 ```
+
+## Bonus: Install Headlamp
+
+To visualize our Kubernetes resources, we can use [Headlamp](https://headlamp.dev/) with the [Flux plugin](https://github.com/headlamp-k8s/plugins/blob/main/flux).
+Apart from installing it as a client application on your local machine, you can also deploy it to your cluster.
+
+The manifests in [`clusters/dhbw/headlamp.yaml`](../clusters/dhbw/headlamp.yaml) install Headlamp including the Flux plugin in the `headlamp` namespace.
+For authentication, you need to create a token of the `headlamp-admin` `ServiceAccount` and use it to log in to Headlamp.
+
+```bash
+# create a token and copy it to the clipboard
+kubectl -n headlamp create token headlamp-admin
+
+# port-forward Headlamp to localhost
+kubectl -n headlamp port-forward svc/headlamp 8080:80
+```
+
+Now, you can access Headlamp in your browser at `http://localhost:8080`.
+Paste the token you created earlier to log in.
