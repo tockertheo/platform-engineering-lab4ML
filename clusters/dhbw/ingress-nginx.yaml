@@ -1,0 +1,36 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: ingress-nginx
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: https://kubernetes.github.io/ingress-nginx
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ingress-nginx
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: ingress-nginx
+      interval: 1h0m0s
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: ingress-nginx
+      version: 4.14.0
+  install:
+    createNamespace: true
+  interval: 1h0m0s
+  releaseName: ingress-nginx
+  targetNamespace: ingress-nginx
+  values:
+    controller:
+      ingressClassResource:
+        default: true
+    defaultBackend:
+      enabled: true
