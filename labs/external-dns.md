@@ -4,7 +4,7 @@
 
 ## Install external-dns
 
-We manually create the secret in the `external-dns` namespace holding the service account key file downloaded from Moodle:
+We manually create the secret in the `external-dns` namespace holding the service account key file downloaded from [Moodle](https://moodle.dhbw-mannheim.de/course/section.php?id=103110):
 
 ```bash
 kubectl create namespace external-dns
