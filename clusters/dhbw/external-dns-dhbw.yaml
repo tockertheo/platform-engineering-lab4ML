@@ -1,0 +1,69 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-dns
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: https://kubernetes-sigs.github.io/external-dns
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: external-dns
+      interval: 1h0m0s
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+      version: 1.19.0
+  install:
+    createNamespace: true
+  interval: 1h0m0s
+  releaseName: external-dns
+  targetNamespace: external-dns
+  values:
+    provider:
+      name: rfc2136
+    extraArgs:
+    - --rfc2136-host=dyndns.dhbw.cloud
+    - --rfc2136-port=53
+    - --rfc2136-zone=$(DNS_ZONE)
+    - --rfc2136-tsig-secret=$(DNS_TSIG_SECRET)
+    - --rfc2136-tsig-secret-alg=$(DNS_TSIG_SECRET_ALG)
+    - --rfc2136-tsig-keyname=$(DNS_TSIG_KEY_NAME)
+    - --rfc2136-tsig-axfr
+
+    logLevel: info
+    policy: sync
+    interval: 1m
+    triggerLoopOnEvent: true
+    sources:
+    - service
+    - ingress
+
+    registry: txt
+    txtOwnerId: "external-dns"
+  postRenderers:
+  - kustomize:
+      patches:
+      - patch: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: external-dns
+            namespace: external-dns
+          spec:
+            template:
+              spec:
+                containers:
+                - name: external-dns
+                  envFrom:
+                  - secretRef:
+                      name: dhbw-dyndns-key
