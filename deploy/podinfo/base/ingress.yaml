@@ -2,6 +2,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: podinfo
+  annotations:
+    # set this to letsencrypt-staging for testing purposes
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
   rules:
   - http:
@@ -13,3 +16,5 @@ spec:
             name: podinfo
             port:
               name: http
+  tls:
+  - secretName: podinfo-tls
