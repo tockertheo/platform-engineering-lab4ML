@@ -81,6 +81,19 @@ They are provisioned using the [OpenTofu](https://opentofu.org/) configuration i
 - Ports allowed for LoadBalancers: 80, 443, 12000-12999 (configured in [security group rules](tofu/cluster/network.tf))
 - `PersistentVolumes` are local to each node and cannot be shared or moved across nodes, i.e., pods using an existing `PersistentVolumes` cannot be rescheduled to other nodes
 
+## DNS Setup
+
+Until [dyndns.dhbw.cloud](https://dyndns.dhbw.cloud) is fully functional, we use a shared public zone (`dski23a.timebertt.dev.`) managed in Google Cloud DNS (zone name `dski23a-timebertt-dev`, project `timebertt-dhbw`).
+All students can create records in this zone via the provided shared service account key.
+Don't leak the key or commit it to Git!
+
+To prevent conflicts between different clusters, each student must use a unique subdomain and external-dns owner ID corresponding to their cluster name (e.g., `student-abcd`):
+
+- Each cluster uses a unique subdomain: `<cluster-name>.dski23a.timebertt.dev`
+  - Example: `student-abcd.dski23a.timebertt.dev`
+- Each cluster uses a unique external-dns owner ID: `<cluster-name>`
+  - Example: `student-abcd`
+
 ## Contributions Welcome
 
 If you spot any bugs or have suggestions for improvements of the course materials or cluster setup, feel free to open an issue or a pull request!
