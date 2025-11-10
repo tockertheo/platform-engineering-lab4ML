@@ -83,6 +83,9 @@ For re-configuring a broken Flux installation, you can simply apply the `gotk-sy
 Note that the initial `flux-system` `Kustomization` resource points to the `./clusters/dhbw` path in the repository, which includes the `flux-system` directory where the Flux manifests are located.
 This means that Flux will apply its own manifests, enabling us to manage and upgrade Flux declaratively via GitOps as well.
 
+We can place additional Flux manifests like `Kustomizations` and `HelmReleases` in the `./clusters/dhbw` directory to have Flux deploy them automatically.
+Further `Kustomizations` can reference the initial `GitRepository` resource (`flux-system`) as their source to pull application manifests from the same repository and reuse the existing source secret for authentication.
+
 Finally, the command waits for all components to become healthy, indicating that Flux has been successfully bootstrapped on the cluster.
 The installation can also be verified using `flux check`.
 
@@ -141,8 +144,18 @@ Kustomization/flux-system/flux-system
 
 ## Deploy the `podinfo` Application
 
+To add more manifests to be deployed by Flux, we clone the GitHub repository locally.
+All further commands are executed in the cloned repository.
+
+```bash
+git clone https://github.com/$GITHUB_USER/platform-engineering-lab
+cd platform-engineering-lab
+```
+
+Now, we can add the Kustomize manifests for the `podinfo` application from the [Kustomize lab](kustomize.md) to our repository under the `./deploy/podinfo` directory.
+
 Generate `Kustomization` manifests for the `podinfo` application in both `development` and `production` environments using the Flux CLI.
-The Kustomizations should apply the manifests from the `./deploy/podinfo/overlays/*` directories of this repository (called `flux-system` in the cluster).
+The Flux `Kustomizations` objects should apply the manifests from the `./deploy/podinfo/overlays/*` directories of the Flux `GitRepository` corresponding to your GitHub repository (called `flux-system`).
 The generated manifests are pushed to the [`./clusters/dhbw`](../clusters/dhbw) directory for Flux to pick them up (see [commit](https://github.com/timebertt/platform-engineering-lab/commit/7453df75ed0f38e4caa8af574fa2d711a3314da2)).
 
 ```bash
@@ -171,7 +184,7 @@ git commit -m "Add podinfo Kustomizations for Flux"
 git push origin main
 ```
 
-After pushing the changes to GitHub, Flux will automatically detect the new Kustomizations and deploy the `podinfo` application to the cluster in both environments.
+After pushing the changes to GitHub, Flux will automatically detect the new `Kustomizations` and deploy the `podinfo` application to the cluster in both environments.
 
 ```bash
 $ kubectl -n flux-system get ks
