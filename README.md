@@ -37,7 +37,7 @@ To prepare for the practical exercises in this course, ensure you have the follo
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) installed
   - optional: [k9s](https://k9scli.io/) installed for easier cluster navigation
 - GitHub account (for creating individual repositories for exercises)
-- Git installed and [authenticated with your GitHub account]([authenticated with GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github#authenticating-with-the-command-line)
+- Git installed and [authenticated with your GitHub account](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github#authenticating-with-the-command-line)
   - optional: visual Git client (e.g., GitHub Desktop, Sourcetree)
 - optional: SSH client (e.g., OpenSSH, PuTTY)
 
