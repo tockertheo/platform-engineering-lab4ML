@@ -16,7 +16,7 @@ brew install sops age
 First, generate an age key pair using `age-keygen`.
 The public key is printed to stdout (pattern: `age1...`).
 The private key is stored (alongside the public key) in `age.agekey` (pattern: `AGE-SECRET-KEY-...`).
-You can always derive the public key from the private key using ``age-keygen -y age.agekey`.
+You can always derive the public key from the private key using `age-keygen -y age.agekey`.
 
 ```bash
 # Don't commit the age private key to git
