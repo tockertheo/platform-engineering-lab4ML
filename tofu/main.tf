@@ -23,6 +23,10 @@ locals {
         name          = "timebertt"
         output_prefix = "00-"
       }
+      "marius" = {
+        name          = "marius"
+        output_prefix = "00-"
+      }
     },
     local.student_clusters
   )
