@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/tockertheo/platform-engineering-lab4ML
+    path: charts/minio
+    targetRevision: main
+    helm:
+      valueFiles:
+        - ../../helm-values/minio-values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: data-storage
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

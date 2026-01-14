@@ -1,0 +1,50 @@
+mode: standalone
+replicas: 1
+
+auth:
+  existingSecret: minio
+  rootUserSecretKey: root-user
+  rootPasswordSecretKey: root-password
+
+global:
+  security:
+    allowInsecureImages: true
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: local-path
+  accessModes:
+    - ReadWriteOnce
+
+image:
+  registry: quay.io
+  repository: minio/minio
+  tag: RELEASE.2023-09-30T07-02-29Z
+  pullPolicy: IfNotPresent
+
+command:
+  - minio
+args:
+  - server
+  - /bitnami/minio/data
+  - "--address=:9000"
+
+console:
+  enabled: false
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hostname: minio.student-vkfm.dski23a.timebertt.dev
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  tls: true
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m
